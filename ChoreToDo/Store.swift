@@ -107,15 +107,18 @@ class NoteStore {
     print("completed save")
   }
   func filterNotes() {
-    filteredNotes = sortedNotes
-    for category in 0..<filteredNotes.count {
-      for note in 0..<filteredNotes[category].count {
-        if filteredNotes[category][note].isComplete == true {
-          filteredNotes[category].remove(at: note)
+    filteredNotes = []
+    for category in 0..<sortedNotes.count {
+      filteredNotes.append([])
+      for note in 0..<sortedNotes[category].count {
+        if sortedNotes[category][note].isComplete == false {
+          let temp = sortedNotes[category][note]
+          filteredNotes[category].append(temp)
         }
-        
       }
     }
+    print("filtered notes has contents: ")
+    print(filteredNotes)
   }
   
   func reSort() {
