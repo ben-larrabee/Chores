@@ -11,6 +11,8 @@ import UIKit
 class NotesTableViewController: UITableViewController {
   
   @IBOutlet weak var filteringComplete: UISwitch!
+  let searchController = UISearchController(searchResultsController: nil)
+  var searchfilteredNotes = [[Note]]()
   
   
   override func viewDidLoad() {
@@ -19,6 +21,10 @@ class NotesTableViewController: UITableViewController {
     if filteringComplete.isOn {
       NoteStore.shared.filterNotes()
     }
+    searchController.searchResultsUpdater = self
+    searchController.dimsBackgroundDuringPresentation = false
+    definesPresentationContext = true
+    tableView.tableHeaderView = searchController.searchBar
   }
   
   override func didReceiveMemoryWarning() {
@@ -36,7 +42,9 @@ class NotesTableViewController: UITableViewController {
   override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     // #warning Incomplete implementation, return the number of rows
     print("checking section \(section)")
-    if filteringComplete.isOn {
+    if searchController.isActive && searchController.searchBar.text != "" {
+      return searchfilteredNotes[section].count
+    } else if filteringComplete.isOn {
       if section < NoteStore.shared.categories.count {
         return NoteStore.shared.filteredNotes[section].count
       } else {
@@ -63,7 +71,9 @@ class NotesTableViewController: UITableViewController {
   
   override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueReusableCell(withIdentifier: String(describing: NoteTableViewCell.self)) as! NoteTableViewCell
-    if filteringComplete.isOn {
+    if searchController.isActive && searchController.searchBar.text != "" {
+      cell.setupCell(searchfilteredNotes[indexPath.section][indexPath.row])
+    } else if filteringComplete.isOn {
       cell.setupCell(NoteStore.shared.filteredNotes[indexPath.section][indexPath.row])
     } else {
       cell.setupCell(NoteStore.shared.getNote(at: indexPath.section, index: indexPath.row))
@@ -110,10 +120,30 @@ class NotesTableViewController: UITableViewController {
     return true
     }
   }
+  func filterContentForSearchText(searchText: String, scope: String = "All") {
+    searchfilteredNotes = [[],[],[],[],[],[]]
+    for category in 0..<NoteStore.shared.sortedNotes.count {
+      //searchfilteredNotes.append([])
+      for note in NoteStore.shared.sortedNotes[category] {
+        if note.title.lowercased().contains(searchText.lowercased()) {
+        searchfilteredNotes[category].append(note)
+        }
+      }
+    }
+    tableView.reloadData()
+  }
   
   // MARK: - Navigation
   override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
     if segue.identifier == "editChoreSegue" {
+      if searchController.isActive && searchController.searchBar.text != "" {
+        let choreDetailVC  = segue.destination as! ChoreEditDetailVC
+        if let selectedChoreCell = sender as? NoteTableViewCell {
+          let indexPath = tableView.indexPath(for: selectedChoreCell)!
+          let selectedChore = searchfilteredNotes[indexPath.section][indexPath.row]
+          choreDetailVC.note = selectedChore
+        }
+      }
       if filteringComplete.isOn {
         print("About to do something bad")
       } else {
@@ -204,5 +234,10 @@ class NotesTableViewController: UITableViewController {
 //      //let indexPath = IndexPath(row: 0, section: 0)
 //      //tableView.insertRows(at: [indexPath], with: .automatic)
 //    }
+  }
+}
+extension NotesTableViewController: UISearchResultsUpdating {
+  func updateSearchResults(for: UISearchController) {
+    filterContentForSearchText(searchText: searchController.searchBar.text!)
   }
 }
