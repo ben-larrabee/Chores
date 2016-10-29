@@ -5,15 +5,39 @@
 //  Created by Ben Larrabee on 10/18/16.
 //  Copyright © 2016 Ben Larrabee. All rights reserved.
 //
+//@IBAction func send10SecNotification(_ sender: UIButton) {
+//  if isGrantedNotificationAccess{
+//    //add notification code here
+//  }
+//}
+//let trigger = UNTimeIntervalNotificationTrigger(
+//  timeInterval: 10.0,
+//  repeats: false)
+//let request = UNNotificationRequest(
+//  identifier: "10.second.message",
+//  content: content,
+//  trigger: trigger
+//)
+//UNUserNotificationCenter.current().add(
+//  request, withCompletionHandler: nil
+//import UserNotifications
+//  var isGrantedNotificationAccess:Bool = false
+//UNUserNotificationCenter.current().requestAuthorization(
+//  options: [.alert,.sound,.badge],
+//  completionHandler: { (granted,error) in
+//    self.isGrantedNotificationAccess = granted
+//  }
+//)
 
 import UIKit
+
 
 class NotesTableViewController: UITableViewController {
   
   @IBOutlet weak var filteringComplete: UISwitch!
   let searchController = UISearchController(searchResultsController: nil)
   var searchfilteredNotes = [[Note]]()
-  
+
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -25,8 +49,9 @@ class NotesTableViewController: UITableViewController {
     searchController.dimsBackgroundDuringPresentation = false
     definesPresentationContext = true
     tableView.tableHeaderView = searchController.searchBar
+   
   }
-  
+
   override func didReceiveMemoryWarning() {
     super.didReceiveMemoryWarning()
     // Dispose of any resources that can be recreated.
