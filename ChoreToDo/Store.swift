@@ -12,19 +12,10 @@ class NoteStore {
   static let shared = NoteStore() // singleton
   fileprivate var notes: [Note]!
   var categories: [ToDoCategory]!
-  var currentCategoryIndex = 1
   var selectedImage: UIImage?
   var sortedNotes: [[Note]]!
   var filteredNotes: [[Note]]!
-  let colors = [#colorLiteral(red: 1, green: 0.1491314173, blue: 0, alpha: 1),#colorLiteral(red: 0.01680417731, green: 0.1983509958, blue: 1, alpha: 1),#colorLiteral(red: 0, green: 0.9768045545, blue: 0, alpha: 1),#colorLiteral(red: 0.5791940689, green: 0.1280144453, blue: 0.5726861358, alpha: 1),#colorLiteral(red: 0.5769939423, green: 0.06602010131, blue: 0, alpha: 1),#colorLiteral(red: 0, green: 0, blue: 0.5, alpha: 1)]
-  //  let colors = [
-  //    UIColor(red: CGFloat(1.0), green: CGFloat(0.0), blue: CGFloat(0.0), alpha: 1.0),//red
-  //    UIColor(red: CGFloat(0.0), green: CGFloat(0.0), blue: CGFloat(1.0), alpha: 1.0),//blue
-  //    UIColor(red: CGFloat(0.0), green: CGFloat(0.5), blue: CGFloat(0.0), alpha: 1.0),//green
-  //    UIColor(red: CGFloat(0.5), green: CGFloat(0.0), blue: CGFloat(0.5), alpha: 1.0),//purple
-  //    UIColor(red: CGFloat(0.5), green: CGFloat(0.0), blue: CGFloat(0.0), alpha: 1.0),//maroon
-  //    UIColor(red: CGFloat(0.0), green: CGFloat(0.0), blue: CGFloat(0.5), alpha: 1.0)//navy
-  //    ]
+  var unclaimed: [Note]! = []
   
   init() {
     print("started shared instantiation")
@@ -47,7 +38,6 @@ class NoteStore {
     if categoryFileManager.fileExists(atPath: categoryFilePath) {
       print("found saved categories")
       categories = NSKeyedUnarchiver.unarchiveObject(withFile: categoryFilePath) as! [ToDoCategory]
-      self.currentCategoryIndex = categories.count
       print(categories)
     } else {
       print("didn't find categories")
@@ -56,7 +46,6 @@ class NoteStore {
       categories.append(ToDoCategory(name: "Unsorted", color: #colorLiteral(red: 1, green: 0.1491314173, blue: 0, alpha: 1) ))
       categories.append(ToDoCategory(name: "Pa", color: #colorLiteral(red: 0.01680417731, green: 0.1983509958, blue: 1, alpha: 1) ))
       print(categories)
-      self.currentCategoryIndex = 2
     }
     save()
     sort()
@@ -96,6 +85,11 @@ class NoteStore {
     }
     deleteNote(from.section, index: from.row)
     sortedNotes[note.categoryIndex].insert(note, at: to.row)
+  }
+  func shiftCategory(indexPath: Int) {
+    for note in sortedNotes[indexPath] {
+      note.categoryIndex = indexPath - 1
+    }
   }
   func getCount(section: Int) -> Int {
     return sortedNotes[(section)].count
@@ -150,7 +144,6 @@ class NoteStore {
   func addCategory(newCategory: ToDoCategory) {
     categories.append(newCategory)
     sortedNotes.append([])
-    currentCategoryIndex += 1
   }
   
   // Mark: - PRivate Functions

@@ -53,7 +53,7 @@ class ChoreAddDetailVC: UIViewController, UIPickerViewDataSource, UIPickerViewDe
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    //dateTimePicker.minuteInterval = 15
+    dateTimePicker.minuteInterval = 15
     categoryPicker.dataSource = self
     categoryPicker.delegate = self
     populatePickerData()
@@ -64,7 +64,6 @@ class ChoreAddDetailVC: UIViewController, UIPickerViewDataSource, UIPickerViewDe
         self.isGrantedNotificationAccess = granted
       }
     )
-    
     if let image = note.image {
       imageView.image = image
       addGestureRecognizer()
@@ -77,6 +76,7 @@ class ChoreAddDetailVC: UIViewController, UIPickerViewDataSource, UIPickerViewDe
     super.didReceiveMemoryWarning()
     // Dispose of any resources that can be recreated.
   }
+  
   func addGestureRecognizer() {
     gestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(viewImage))
     imageView.addGestureRecognizer(gestureRecognizer)
@@ -92,7 +92,6 @@ class ChoreAddDetailVC: UIViewController, UIPickerViewDataSource, UIPickerViewDe
   
   @IBAction func dateTimeSelection(_ sender: AnyObject) {
     dueDate = dateTimePicker.date
-    
   }
   
   fileprivate func showPicker(_ type: UIImagePickerControllerSourceType) {
@@ -101,11 +100,10 @@ class ChoreAddDetailVC: UIViewController, UIPickerViewDataSource, UIPickerViewDe
     imagePicker.sourceType = type
     present(imagePicker, animated: true, completion: nil)
   }
+  
   func populatePickerData() {
     for category in NoteStore.shared.categories {
       pickerData.append(category.name)
-      print(pickerData)
-      
     }
   }
   // MARK: - Navigation
@@ -123,53 +121,22 @@ class ChoreAddDetailVC: UIViewController, UIPickerViewDataSource, UIPickerViewDe
     note.categoryIndex = categoryIndex
     note.categoryName = category
     note.categoryBG = categoryBG
+
     if isGrantedNotificationAccess{
-      //add notification code here
-      
-      //Set the content of the notification
       let content = UNMutableNotificationContent()
       content.title = category + " has a chore to do"
       content.subtitle = "from Chore To Do"
       content.body = noteTitleField.text!
       let dateformatter = NSCalendar(calendarIdentifier: .gregorian)
-      
       var dueDateComponent = DateComponents()
       dueDateComponent.month = (dateformatter?.component(.month, from: dueDate))!
       dueDateComponent.day = (dateformatter?.component(.day, from: dueDate))!
       dueDateComponent.hour = (dateformatter?.component(.hour, from: dueDate))!
       dueDateComponent.minute = (dateformatter?.component(.minute, from: dueDate))!
-      print("The due date is")
-      print(dueDateComponent)
-      //testing
-      var mod = DateComponents()
-      mod.month = (dateformatter?.component(.month, from: Date()))!
-      mod.day = (dateformatter?.component(.day, from: Date()))!
-      mod.hour = (dateformatter?.component(.hour, from: Date()))!
-      mod.minute = (dateformatter?.component(.minute, from: Date()))!
-      print("The current date is")
-      print(mod)
-      
       let trigger = UNCalendarNotificationTrigger.init(dateMatching: dueDateComponent, repeats: false)
-      
-      //Set the trigger of the notification -- here a timer.
-//      let trigger = UNTimeIntervalNotificationTrigger(
-//        timeInterval: 10.0,
-//        repeats: false)
-//      
-      //Set the request for the notification from the above
-      let request = UNNotificationRequest(
-        identifier: note.title,
-        content: content,
-        trigger: trigger
-      )
-      
-      //Add the notification to the currnet notification center
-      UNUserNotificationCenter.current().add(
-        request, withCompletionHandler: nil)
-      
+      let request = UNNotificationRequest(identifier: note.title, content: content, trigger: trigger)
+      UNUserNotificationCenter.current().add(request, withCompletionHandler: nil)
     }
-    //NoteStore.shared.addNote(note)
-    
   }
   
   //MARK: - Delegates and data sources
@@ -193,7 +160,6 @@ class ChoreAddDetailVC: UIViewController, UIPickerViewDataSource, UIPickerViewDe
     let titleData = pickerData[row]
     let myTitle = NSAttributedString(string: titleData, attributes: [NSFontAttributeName:UIFont(name: "Georgia", size: 26.0)!,NSForegroundColorAttributeName:#colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)])
     pickerLabel.attributedText = myTitle
-    //color  and center the label's background
     pickerLabel.backgroundColor = NoteStore.shared.categories[row].categoryBG
     pickerLabel.textAlignment = .center
     return pickerLabel

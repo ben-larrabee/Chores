@@ -15,32 +15,37 @@ class EditCategoryViewController: UIViewController {
   @IBOutlet weak var editRedBGColor: UISlider!
   @IBOutlet weak var editGreenBGColor: UISlider!
   @IBOutlet weak var editBlueBGColor: UISlider!
+  @IBOutlet weak var save: UIBarButtonItem!
   let defaults = UserDefaults.standard
   var category = ToDoCategory()
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    let colorData = defaults.data(forKey: "editBGColor")
-    if let colorData = colorData {
-      editCategoryBGColor.backgroundColor = NSKeyedUnarchiver.unarchiveObject(with: colorData) as? UIColor ?? #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
-    } else {
-      editCategoryBGColor.backgroundColor = #colorLiteral(red: 0.2588235438, green: 0.7568627596, blue: 0.9686274529, alpha: 1)
-    }
+//    let colorData = defaults.data(forKey: "editBGColor")
+//    if let colorData = colorData {
+//      editCategoryBGColor.backgroundColor = NSKeyedUnarchiver.unarchiveObject(with: colorData) as? UIColor ?? #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
+//    } else {
+//      editCategoryBGColor.backgroundColor = #colorLiteral(red: 0.2588235438, green: 0.7568627596, blue: 0.9686274529, alpha: 1)
+//    }
+//    let BGColor = CIColor(color: editCategoryBGColor.backgroundColor!)
+    editCategoryBGColor.backgroundColor = category.categoryBG
     let BGColor = CIColor(color: editCategoryBGColor.backgroundColor!)
     editRedBGColor.value = Float(BGColor.red)
     editGreenBGColor.value = Float(BGColor.green)
     editBlueBGColor.value = Float(BGColor.blue)
+    editCategoryName.text = category.name
+    
     
     // Do any additional setup after loading the view.
   }
   
   override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
-    
-    let colorData = NSKeyedArchiver.archivedData(withRootObject: editCategoryBGColor.backgroundColor!)
-    defaults.set(colorData, forKey: "editBGColor")
-    
-    defaults.synchronize()
+//    
+//    let colorData = NSKeyedArchiver.archivedData(withRootObject: editCategoryBGColor.backgroundColor!)
+//    defaults.set(colorData, forKey: "editBGColor")
+//    
+//    defaults.synchronize()
   }
   
   override func didReceiveMemoryWarning() {
@@ -58,7 +63,6 @@ class EditCategoryViewController: UIViewController {
   override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
   // Get the new view controller using segue.destinationViewController.
   // Pass the selected object to the new view controller.
-    print(category.name)
     print("saving a category")
     if let name = editCategoryName.text {
       category.name = name
@@ -67,7 +71,6 @@ class EditCategoryViewController: UIViewController {
     }
     category.image = #imageLiteral(resourceName: "generic")
     category.categoryBG = editCategoryBGColor.backgroundColor!
-    NoteStore.shared.addCategory(newCategory: (ToDoCategory(name: editCategoryName.text!, color: editCategoryBGColor.backgroundColor!)))
   }
   
   @IBAction func categoryColorChange(_ sender: AnyObject) {

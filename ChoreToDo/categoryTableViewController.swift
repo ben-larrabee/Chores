@@ -10,15 +10,15 @@ import UIKit
 
 class categoryTableViewController: UITableViewController {
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
+  override func viewDidLoad() {
+    super.viewDidLoad()
 
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem()
-    }
+  
+    self.navigationItem.rightBarButtonItem = self.editButtonItem
+  }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -56,6 +56,17 @@ class categoryTableViewController: UITableViewController {
             return
           }
           else {
+            for note in NoteStore.shared.sortedNotes[indexPath.row] {
+              note.categoryName = "Unsorted"
+              note.categoryBG = #colorLiteral(red: 0.9254902005, green: 0.2352941185, blue: 0.1019607857, alpha: 1)
+              if var unclaimed = NoteStore.shared.unclaimed {
+                unclaimed.append(note)
+              }
+            }
+            for i in indexPath.row..<NoteStore.shared.categories.count {
+              NoteStore.shared.shiftCategory(indexPath: i)
+            }
+            NoteStore.shared.sortedNotes.remove(at: indexPath.row)
             NoteStore.shared.categories.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .fade)
           }
@@ -88,19 +99,35 @@ class categoryTableViewController: UITableViewController {
       if segue.identifier == "EditCategorySegue" {
         let categoryEditVC = segue.destination as! EditCategoryViewController
         let tableCell = sender as! categoryTableViewCell
+        //let indexPath = tableView.indexPathForSelectedRow
         let indexPath = tableView.indexPath(for: tableCell)
         categoryEditVC.category = NoteStore.shared.categories[(indexPath?.row)!]
+      } else if segue.identifier == "addCategorySegue" {
+        
       }
         // Get the new view controller using segue.destinationViewController.
         // Pass the selected object to the new view controller.
     }
-  
-  @IBAction func unwindToCategoryTableVC (sender: UIStoryboardSegue){
+  // MARK: - Unwind Segue
+  @IBAction func unwindToCategoryList(sender: UIStoryboardSegue) {
     if let sourceViewController = sender.source as? EditCategoryViewController {
       let category = sourceViewController.category
-      let newIndexPath = IndexPath(row: NoteStore.shared.categories.count - 1, section: 0)
-      tableView.insertRows(at: [newIndexPath], with: .automatic)
-      //NoteStore.shared.categories.append(category)
+      if let selectedIndexPath = tableView.indexPathForSelectedRow {
+        NoteStore.shared.categories[selectedIndexPath.row] = category
+        tableView.reloadRows(at: [selectedIndexPath], with: .automatic)
+      } else {
+        let newIndexPath = IndexPath(row: NoteStore.shared.categories.count, section: 0)
+        NoteStore.shared.addCategory(newCategory: (ToDoCategory(name: category.name, color: category.categoryBG)))
+        tableView.insertRows(at: [newIndexPath], with: .automatic)
+      }
+//      if let sourceViewController = sender.source as? ChoreAddDetailVC {
+//        let note = sourceViewController.note
+//        let newIndexPath = IndexPath(row: NoteStore.shared.getCount(section: note.categoryIndex), section: note.categoryIndex)
+//        NoteStore.shared.sortedNotes[note.categoryIndex].append(note)
+//        tableView.insertRows(at: [newIndexPath], with: .automatic)
+//        print("appended new entry successfully")
+//        print("the contents of notes are now")
+//        print(NoteStore.shared.sortedNotes)
     }
   }
 }

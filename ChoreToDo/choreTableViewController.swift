@@ -5,29 +5,7 @@
 //  Created by Ben Larrabee on 10/18/16.
 //  Copyright © 2016 Ben Larrabee. All rights reserved.
 //
-//@IBAction func send10SecNotification(_ sender: UIButton) {
-//  if isGrantedNotificationAccess{
-//    //add notification code here
-//  }
-//}
-//let trigger = UNTimeIntervalNotificationTrigger(
-//  timeInterval: 10.0,
-//  repeats: false)
-//let request = UNNotificationRequest(
-//  identifier: "10.second.message",
-//  content: content,
-//  trigger: trigger
-//)
-//UNUserNotificationCenter.current().add(
-//  request, withCompletionHandler: nil
-//import UserNotifications
-//  var isGrantedNotificationAccess:Bool = false
-//UNUserNotificationCenter.current().requestAuthorization(
-//  options: [.alert,.sound,.badge],
-//  completionHandler: { (granted,error) in
-//    self.isGrantedNotificationAccess = granted
-//  }
-//)
+
 
 import UIKit
 
@@ -41,6 +19,15 @@ class NotesTableViewController: UITableViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    if let unclaimed = NoteStore.shared.unclaimed {
+      while unclaimed.count != 0 {
+        let note = NoteStore.shared.unclaimed.popLast()
+        print(note?.title)
+        let newIndexPath = IndexPath(row: NoteStore.shared.getCount(section: 0), section: 0)
+        NoteStore.shared.sortedNotes[0].append(note!)
+        tableView.insertRows(at: [newIndexPath], with: .automatic)
+      }
+    }
     self.navigationItem.rightBarButtonItem = self.editButtonItem
     if filteringComplete.isOn {
       NoteStore.shared.filterNotes()
@@ -50,6 +37,10 @@ class NotesTableViewController: UITableViewController {
     definesPresentationContext = true
     tableView.tableHeaderView = searchController.searchBar
    
+  }
+  
+  override func viewWillAppear(_ animated: Bool) {
+    tableView.reloadData()
   }
 
   override func didReceiveMemoryWarning() {
@@ -61,11 +52,9 @@ class NotesTableViewController: UITableViewController {
   
   override func numberOfSections(in tableView: UITableView) -> Int {
     return 6
-    //return NoteStore.shared.categories.count
   }
   
   override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    // #warning Incomplete implementation, return the number of rows
     print("checking section \(section)")
     if searchController.isActive && searchController.searchBar.text != "" {
       return searchfilteredNotes[section].count
@@ -106,10 +95,7 @@ class NotesTableViewController: UITableViewController {
     return cell
   }
   
-  
-   // Override to support conditional editing of the table view.
   override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-   // Return false if you do not want the specified item to be editable.
     if filteringComplete.isOn {
       return false
     } else {
@@ -117,16 +103,12 @@ class NotesTableViewController: UITableViewController {
     }
   }
   
-  // Override to support editing the table view.
   override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
     if editingStyle == .delete {
       NoteStore.shared.deleteNote(indexPath.section, index: indexPath.row)
-      //trying again with this trick
-      //using the following code in place of the commented out code below
-      //tableView.reloadData()
       tableView.deleteRows(at: [indexPath], with: .fade)
     } else if editingStyle == .insert {
-      // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
+      // handled in unwind from segue
     }
   }
   
@@ -148,7 +130,6 @@ class NotesTableViewController: UITableViewController {
   func filterContentForSearchText(searchText: String, scope: String = "All") {
     searchfilteredNotes = [[],[],[],[],[],[]]
     for category in 0..<NoteStore.shared.sortedNotes.count {
-      //searchfilteredNotes.append([])
       for note in NoteStore.shared.sortedNotes[category] {
         if note.title.lowercased().contains(searchText.lowercased()) {
         searchfilteredNotes[category].append(note)
@@ -170,7 +151,7 @@ class NotesTableViewController: UITableViewController {
         }
       }
       if filteringComplete.isOn {
-        print("About to do something bad")
+        // do nothing
       } else {
         let choreDetailVC = segue.destination as! ChoreEditDetailVC
         // Get the cell that generated this segue.
@@ -182,15 +163,7 @@ class NotesTableViewController: UITableViewController {
       }
     }
   }
-//  override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-//    if segue.identifier == "EditChoreSegue" {
-//      print("Sending chore to edit screen")
-//      let noteDetailVC = segue.destination as! ChoreEditDetailVC
-//      let tableCell = sender as! NoteTableViewCell
-//      print(tableCell.note.title)
-//      noteDetailVC.note = tableCell.note
-//    }
-//  }
+  
   // MARK: - Unwind Segue
   @IBAction func unwindToChoreList(sender: UIStoryboardSegue) {
     if filteringComplete.isOn {
@@ -204,61 +177,24 @@ class NotesTableViewController: UITableViewController {
           NoteStore.shared.updateNote(note, category: selectedIndexPath.section, index: selectedIndexPath.row)
         }
       }
-    
-
-//        let newIndexPath = IndexPath(row: NoteStore.shared.getCount(section: note.categoryIndex), section: note.categoryIndex)
-//        NoteStore.shared.sortedNotes[note.categoryIndex].append(note)
-//        tableView.insertRows(at: [newIndexPath], with: .automatic)
-        // Add a new meal.
       if let sourceViewController = sender.source as? ChoreAddDetailVC {
         let note = sourceViewController.note
         let newIndexPath = IndexPath(row: NoteStore.shared.getCount(section: note.categoryIndex), section: note.categoryIndex)
         NoteStore.shared.sortedNotes[note.categoryIndex].append(note)
         tableView.insertRows(at: [newIndexPath], with: .automatic)
-        print("appended new entry successfully")
-        print("the contents of notes are now")
-        print(NoteStore.shared.sortedNotes)
       }
     }
   }
 
   @IBAction func filtering(_ sender: UISwitch) {
-    print("button detected")
     if filteringComplete.isOn {
       NoteStore.shared.filterNotes()
-//    var indexPaths = [IndexPath]()
-//    for i in 0..<NoteStore.shared.filteredNotes.count {
-//      for j in 0..<NoteStore.shared.filteredNotes[i].count {
-//        let indexPath = IndexPath(row: j, section: i)
-//        indexPaths.append(indexPath)
-//      }
-//    }
     }
     tableView.reloadData()
   }
   @IBAction func switchflicked(_ sender: UIBarButtonItem) {
-  
   }
   @IBAction func saveNoteDetail(_ segue: UIStoryboardSegue) {
-//    let noteDetailVC = segue.source as! ChoreEditDetailVC
-//    if let indexPath = tableView.indexPathForSelectedRow {
-//      NoteStore.shared.updateNote(noteDetailVC.note, category: indexPath.section, index: indexPath.row)
-//      // NoteStore.shared.sort()
-//      var indexPaths: [IndexPath] = []
-//      for section in 0...indexPath.section{
-//        for index in 0...indexPath.row{
-//          indexPaths.append(IndexPath(row: index, section: section))
-//        }
-//      }
-//      tableView.reloadRows(at: indexPaths, with: .automatic)
-//    } else {
-//      NoteStore.shared.addNote(noteDetailVC.note)
-//      //trying the following
-//      tableView.reloadData()
-//      // in place of this commented out code
-//      //let indexPath = IndexPath(row: 0, section: 0)
-//      //tableView.insertRows(at: [indexPath], with: .automatic)
-//    }
   }
 }
 extension NotesTableViewController: UISearchResultsUpdating {
