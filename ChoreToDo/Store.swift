@@ -19,20 +19,6 @@ class NoteStore {
   
   init() {
     print("started shared instantiation")
-    let noteFilePath = archiveFilePath(task: "NoteStore.plist")
-    let noteFileManager = FileManager.default
-    if noteFileManager.fileExists(atPath: noteFilePath) {
-      print("found saved notes")
-      notes = NSKeyedUnarchiver.unarchiveObject(withFile: noteFilePath) as! [Note]
-      print(notes)
-    } else {
-      print("didn't find notes")
-      notes = []
-      notes.append(Note(title: "By Ben Larrabee", text: "Ben Larrabee is a TA with TEKY.  This app was created as part of a 9 month coding bootcamp.  Look him up, he's a cool guy."))
-      notes.append(Note(title: "Getting Started", text: "Add Notes by clicking the plus button.\nSee full details by clicking on any note.  You can also edit a note by clicking on it, then making changes in the detail view, and then saving changes.  You can swipe left to delete a note."))
-      notes.append(Note(title: "Welcome", text: "This is ElevenNote, an app created for TEKY"))
-      print(notes)
-    }
     let categoryFilePath = archiveFilePath(task: "CategoryStore.plist")
     let categoryFileManager = FileManager.default
     if categoryFileManager.fileExists(atPath: categoryFilePath) {
@@ -42,13 +28,23 @@ class NoteStore {
     } else {
       print("didn't find categories")
       categories = []
-      print(categories)
-      categories.append(ToDoCategory(name: "Unsorted", color: #colorLiteral(red: 1, green: 0.1491314173, blue: 0, alpha: 1) ))
-      categories.append(ToDoCategory(name: "Pa", color: #colorLiteral(red: 0.01680417731, green: 0.1983509958, blue: 1, alpha: 1) ))
+      sortedNotes = []
+      addCategory(newCategory: ToDoCategory(name: "Unsorted", color: #colorLiteral(red: 0.9254902005, green: 0.2352941185, blue: 0.1019607857, alpha: 1)))
+      addCategory(newCategory: ToDoCategory(name: "Pa", color: #colorLiteral(red: 0.2196078449, green: 0.007843137719, blue: 0.8549019694, alpha: 1)))
       print(categories)
     }
+    let noteFilePath = archiveFilePath(task: "NoteStore.plist")
+    let noteFileManager = FileManager.default
+    if noteFileManager.fileExists(atPath: noteFilePath) {
+      print("found saved notes")
+      notes = NSKeyedUnarchiver.unarchiveObject(withFile: noteFilePath) as! [Note]
+    } else {
+      print("didn't find notes")
+      sortedNotes[0].append(Note(title: "By Ben Larrabee", text: "Ben Larrabee is a TA with TEKY.  This app was created as part of a 9 month coding bootcamp.  Look him up, he's a cool guy."))
+      sortedNotes[0].append(Note(title: "Getting Started", text: "Add Notes by clicking the plus button.\nSee full details by clicking on any note.  You can also edit a note by clicking on it, then making changes in the detail view, and then saving changes.  You can swipe left to delete a note."))
+      sortedNotes[0].append(Note(title: "Welcome", text: "This is ElevenNote, an app created for TEKY"))
+    }
     save()
-    sort()
     print("completed shared instantiation")
     print("the app knows notes =\(self.notes)")
   }
@@ -96,9 +92,16 @@ class NoteStore {
   }
   func save() {
     print("started save")
+    notes = []
+    for category in 0..<sortedNotes.count {
+      for note in sortedNotes[category] {
+        notes.append(note)
+      }
+    }
     NSKeyedArchiver.archiveRootObject(notes, toFile: archiveFilePath(task: "NoteStore.plist"))
     NSKeyedArchiver.archiveRootObject(categories, toFile: archiveFilePath(task: "CategoryStore.plist"))
     print("completed save")
+    sort()
   }
   func filterNotes() {
     filteredNotes = []
