@@ -24,7 +24,7 @@ class NoteStore {
     if categoryFileManager.fileExists(atPath: categoryFilePath) {
       print("found saved categories")
       categories = NSKeyedUnarchiver.unarchiveObject(withFile: categoryFilePath) as! [ToDoCategory]
-      print(categories)
+      print(categories.count)
     } else {
       print("didn't find categories")
       categories = []
@@ -38,6 +38,7 @@ class NoteStore {
     if noteFileManager.fileExists(atPath: noteFilePath) {
       print("found saved notes")
       notes = NSKeyedUnarchiver.unarchiveObject(withFile: noteFilePath) as! [Note]
+      sort()
     } else {
       print("didn't find notes")
       sortedNotes[0].append(Note(title: "By Ben Larrabee", text: "Ben Larrabee is a TA with TEKY.  This app was created as part of a 9 month coding bootcamp.  Look him up, he's a cool guy."))
